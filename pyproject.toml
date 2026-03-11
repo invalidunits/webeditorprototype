@@ -1,0 +1,17 @@
+[project]
+name = "carbonly"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "plumbum>=1.10.0",
+    "rich-click>=1.9.7",
+    "xonsh>=0.22.4",
+]
+
+[dependency-groups]
+dev = [
+    "python-lsp-server>=1.14.0",
+    "ruff>=0.15.4",
+]
