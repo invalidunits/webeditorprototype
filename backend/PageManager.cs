@@ -24,16 +24,46 @@ namespace WebEditor
             }
         }
 
-
-        private void InsertText(string text, int position, IEnumerable<PageClient> insertionClient)
+        private void InsertText(string text, int position)
         {
-            lock (clients) 
+            lock (page) 
             {
                 page.Insert(position, text);
-                foreach (PageClient pc in clients.Except(insertionClient)) if (pc.selectionBegin > position) pc.selectionBegin += text.Length;
+                lock (clients) foreach (PageClient pc in clients)
+                {
+                    lock (pc)
+                    {
+                        if (pc.selectionBegin >= position) 
+                        {
+                            pc.selectionBegin += text.Length;
+                            pc.selectionEnd += text.Length;
+                        }
+                    }
+                } 
                 UpdateClients();
             }
 
+        }
+
+        private void DeleteText(int position, int count)
+        {
+            lock (page) 
+            {
+                int startdel = position - count;
+                page.Remove(startdel, count);
+                lock (clients) foreach (PageClient pc in clients)
+                {
+                    lock (pc)
+                    {
+                        if (pc.selectionBegin >= startdel) 
+                        {
+                            pc.selectionBegin -= Math.Min(count, pc.selectionBegin-startdel);
+                            pc.selectionEnd -= Math.Min(count, pc.selectionEnd-startdel);
+                        }
+                    }
+                } 
+                UpdateClients();
+            }
         }
 
         private void UpdateClients()
@@ -45,6 +75,29 @@ namespace WebEditor
                     selection = new PageAction.SelectionType{ start = x.selectionBegin, end = x.selectionEnd }
                 }, new JsonSerializerOptions { IncludeFields = true })
             ), System.Net.WebSockets.WebSocketMessageType.Text, true, CancellationToken.None)).ToArray());
+        }
+
+        private void ReplaceSelection(int selectionBegin, int selectionEnd, string text)
+        {
+            lock (page) 
+            {
+                page.Remove(selectionBegin, selectionEnd-selectionBegin);
+                page.Insert(selectionBegin, text);
+                int newSelectionEnd = selectionBegin + text.Length;
+                int diff = (selectionEnd - selectionBegin) - text.Length;
+                lock (clients)  foreach (PageClient pc in clients)
+                {
+                    lock (pc)
+                    {
+                        if (pc.selectionBegin > selectionBegin)
+                        {
+                            pc.selectionBegin -= Math.Min(pc.selectionBegin - selectionBegin, diff);
+                            pc.selectionEnd -= Math.Min(pc.selectionEnd - selectionBegin, diff);
+                        }
+                    }
+                } 
+                UpdateClients();
+            }
         }
 
         private void RemoveClient(PageClient client)

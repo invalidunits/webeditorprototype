@@ -9,7 +9,6 @@ window.onload = () => {
 
     // Connection opened
     socket.addEventListener('open', (event) => {
-        socket.send('Hello Server!');
         ready = true
     });
 
@@ -38,9 +37,29 @@ window.onload = () => {
         }
     });
 
-    textArea.addEventListener('input', 
+    textArea.addEventListener('beforeinput', 
         /** @param {InputEvent} event */
         (event) => {
+            if (event.inputType == "deleteContentBackward")
+            {
+                if (textArea.selectionStart != textArea.selectionEnd)
+                {
+                    socket.send(JSON.stringify({
+                        "Type": 3,
+                    }));
+                }
+                else 
+                {
+                    socket.send(JSON.stringify({
+                        "Type": 2,
+                        "Amount": 
+                        {
+                            "amount": 1,
+                        }
+                    }));
+                }
+            }
+
             if (event.inputType == "insertText" && ready)
             {
                 socket.send(JSON.stringify({
@@ -50,6 +69,11 @@ window.onload = () => {
                         "Text": event.data,
                     }
                 }));
+            }
+
+            if (event.inputType == "deleteContentBackward")
+            {
+
             }
         }
     );
