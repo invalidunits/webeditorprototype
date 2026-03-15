@@ -1,11 +1,12 @@
+<!-- Shamelessly based on https://github.com/othneildrew/Best-README-Template -->
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/github_username/repo_name">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+  <a href="https://github.com/invalidunits/webeditorprototype">
+    <!-- <img src="images/logo.png" alt="Logo" width="80" height="80"> -->
   </a>
 
-<h3 align="center">Web Editor Prototype</h3>
+<!-- <h3 align="center">Web Editor Prototype</h3> -->
 
   <p align="center">
     A web editor for which works with multiple users.
@@ -46,36 +47,26 @@
 
 
 <!-- ABOUT THE PROJECT -->
-## About The Project
+<!-- ## About The Project
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
 Here's a blank template to get started. To avoid retyping too much info, do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`, `project_license`
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
 
 
 ### Built With
 
-* [![Next][Next.js]][Next-url]
-* [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
-* [![Angular][Angular.io]][Angular-url]
-* [![Svelte][Svelte.dev]][Svelte-url]
-* [![Laravel][Laravel.com]][Laravel-url]
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-* [![JQuery][JQuery.com]][JQuery-url]
+* [CSharp](https://csharp.net)
+* [ASP.NET](https://asp.net)
+* [Docker](https://www.docker.com/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- GETTING STARTED -->
 ## Getting Started
-
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
@@ -117,6 +108,8 @@ Multiple editors can work on the same document with automatic synchronization.
 The application can export to both **PDF** and **TXT** as well.
 
 [Demo Movie](demo/demo.mov)
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 <!-- ROADMAP -->
