@@ -1,11 +1,32 @@
+function startDownload() {
+    const typeSelect = document.getElementById("downloadType");
+    const type = (typeSelect?.value ?? "pdf").toLowerCase();
+    const ext = type;
+    const url = `${location.protocol}//${window.location.hostname}:${window.location.port}/download?type=${encodeURIComponent(type)}`;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `document.${ext}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 window.onload = () => {
     /** @type {HTMLTextAreaElement | null}  */  
     const textArea = document.getElementById('editedarea');
     const decoder = new TextDecoder('utf-8');
     if (textArea == null) throw new Error("Couldn't find Text Area");
 
-    const socket = new WebSocket(`ws://${window.location.hostname}:${window.location.port}/ws`);
+    wsaddress = (location.protocol === "https:"? "wss://" : "ws://") + `${window.location.hostname}:${window.location.port}/ws`;
+    const socket = new WebSocket(wsaddress);
     let ready = false;
+
+    // /** @type {HTMLButtonElement | null}  */      
+    // const downloadButton = document.getElementById("downloadbutton");
+    // if (downloadButton == null) throw new Error("Couldn't find Download Button");
+    // downloadButton.addEventListener('onclick', (event) => {
+    //     browser.downloads.download(`${window.location.hostname}:${window.location.port}/download`)
+    // });
 
     // Connection opened
     socket.addEventListener('open', (event) => {
@@ -69,11 +90,6 @@ window.onload = () => {
                         "Text": event.data,
                     }
                 }));
-            }
-
-            if (event.inputType == "deleteContentBackward")
-            {
-
             }
         }
     );

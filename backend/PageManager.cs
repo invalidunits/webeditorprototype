@@ -1,14 +1,16 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Primitives;
 using WebEditor;
 using WebEditor.Models;
 namespace WebEditor 
 {
     partial class PageManager
     {
-        LinkedList<PageClient> clients;
+        private LinkedList<PageClient> clients;
         private StringBuilder page;
         public PageManager()
         {
@@ -21,13 +23,28 @@ namespace WebEditor
             lock (clients)
             {
                 clients.AddLast(new PageClient(this, client));
+                UpdateClients();    
             }
         }
 
+        public async Task CompileRequestHandler(HttpContext context)
+        {
+            string type = context.Request.Query["type"].FirstOrDefault() ?? "pdf";
+            bool needsNew; lock(page) needsNew = outdatedCompilation;
+            var compiledPage = await Compile(type, needsNew);
+            context.Response.ContentType = compiledPage.ContentType;
+            using (Stream s = compiledPage.CreateStream()) await s.CopyToAsync(context.Response.Body);
+            
+        }
+
+
+        // thread guarded by page
+        private bool outdatedCompilation = false;
         private void InsertText(string text, int position)
         {
             lock (page) 
             {
+                outdatedCompilation = true;
                 page.Insert(position, text);
                 lock (clients) foreach (PageClient pc in clients)
                 {
@@ -49,6 +66,7 @@ namespace WebEditor
         {
             lock (page) 
             {
+                outdatedCompilation = true;
                 int startdel = position - count;
                 page.Remove(startdel, count);
                 lock (clients) foreach (PageClient pc in clients)
@@ -81,6 +99,7 @@ namespace WebEditor
         {
             lock (page) 
             {
+                outdatedCompilation = true;
                 page.Remove(selectionBegin, selectionEnd-selectionBegin);
                 page.Insert(selectionBegin, text);
                 int newSelectionEnd = selectionBegin + text.Length;
