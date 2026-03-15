@@ -115,10 +115,8 @@ You can also install **[Docker Desktop](https://www.docker.com/products/docker-d
 
 Multiple editors can work on the same document with automatic synchronization. 
 The application can export to both **PDF** and **TXT** as well.
-<video width="320" height="240" controls>
-  <source src="demo/demo.mov" type="video/mov">
-Your browser does not support the video tag.
-</video>
+
+[Demo Movie](demo/demo.mov)
 
 
 <!-- ROADMAP -->
