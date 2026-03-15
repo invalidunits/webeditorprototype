@@ -1,0 +1,15 @@
+services:
+  webeditor:
+    build:
+      context: .
+      dockerfile: DockerFile
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3

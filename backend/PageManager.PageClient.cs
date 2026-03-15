@@ -44,10 +44,18 @@ namespace WebEditor
                         case PageAction.ActionType.Insert:
                             if (action.Insertion is null) throw new FormatException("Requires Insertion");
                             int pos = this.selectionBegin;
-                            this.selectionBegin += action.Insertion.text.Length;
-                            this.selectionEnd += action.Insertion.text.Length;
-                            manager.InsertText(action.Insertion.text, pos, [ this ]);
+                            manager.InsertText(action.Insertion.text, pos);
                             break;
+
+                        case PageAction.ActionType.Delete:
+                            if (action.Amount is null) throw new FormatException("Requires Delete");
+                            manager.DeleteText(this.selectionBegin, action.Amount.amount);
+                            break;
+                            
+                        case PageAction.ActionType.DeleteSelection:
+                            manager.ReplaceSelection(this.selectionBegin, this.selectionEnd, "");
+                            break;
+                            
                     }
                 }
             }

@@ -66,7 +66,7 @@ namespace WebEditor
             if (!tokenSource.IsCancellationRequested) Close();
             if (Socket.State == WebSocketState.Open) 
             {
-                await Socket.CloseAsync(status, closureReason, CancellationToken.None);
+                    await Socket.CloseAsync(status, closureReason, CancellationToken.None);
             }
             else
             {

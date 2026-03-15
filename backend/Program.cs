@@ -1,3 +1,5 @@
+using WebEditor.PageCompiler;
+
 namespace WebEditor 
 {
     static class Program
@@ -33,6 +35,10 @@ namespace WebEditor
             PageManager pageManager = app.Services.GetRequiredService<PageManager>();
 
             app.Map("ws", clientManager.ConnectionRequestHandler);
+            app.Map("download", pageManager.CompileRequestHandler);
+            pageManager.AddCompiler("pdf", new PDFCompiler());
+            pageManager.AddCompiler("txt", new TextCompiler());
+
             clientManager.NewClient += pageManager.NewClient;
 
 
