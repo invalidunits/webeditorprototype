@@ -16,7 +16,6 @@ def get_time_ago(name):
     timestamp = doc["data"][1]
     try:
         ts = float(timestamp)
-        print(ts)
         diff = datetime.now().timestamp() - ts
         if diff < 60:
             return "Just now"

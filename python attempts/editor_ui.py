@@ -46,6 +46,7 @@ def render_editor(filename: str):
     # 1. STATE
     doc_state = b.read_file(filename)
     doc_state['data'][1] = b.get_system_mtime(filename)
+    last_sync_mtime = b.get_system_mtime(filename)
 
 
     # 2. LOGIC
@@ -56,12 +57,47 @@ def render_editor(filename: str):
         ui.navigate.to('/')
 
     def save():
+        nonlocal last_sync_mtime
+        autosave_timer.deactivate()
+
+        # 1. Get raw content from the UI
+        raw_content = text_editor.value
+        if not raw_content:
+            raw_content = ""
+
+        # 2. THE FIX: Smart Sanitization
+        # Instead of just appending to the end, we check if the text ALREADY
+        # has a non-breaking space near the end of the string.
+
+        # This regex looks for &nbsp; followed by any number of closing tags
+        # like </div>, </p>, or whitespace.
+        if not re.search(r'&nbsp;\s*(<\/?[^>]+>)*\s*$', raw_content):
+            # If it's missing, we append it.
+            # But first, we remove any existing trailing &nbsp; to avoid "stacking"
+            sanitized = re.sub(r'&nbsp;$', '', raw_content.rstrip()) + "&nbsp;"
+        else:
+            sanitized = raw_content
+
+        # 3. Update internal state
+        doc_state['content'] = sanitized
         doc_state["title"] = re.sub(r'[<>:"/\\|?*]', '', doc_state["title"])
+
+        # 4. Save to disk
         actual_name = b.save_file(doc_state)
+
+        # 5. ONLY update the UI if we actually changed the string.
+        # If the user just hit 'Enter', the browser's <div><br></div> is fine,
+        # so we leave it alone.
+        if text_editor.value != sanitized:
+            text_editor.set_value(sanitized)
+
+        # 6. Handle renaming
         if actual_name != doc_state["oldTitle"]:
             ui.navigate.history.replace(f'/editor/{actual_name}')
-        doc_state["oldTitle"] = actual_name
-        doc_state["title"] = actual_name
+            doc_state["oldTitle"] = actual_name
+            doc_state["title"] = actual_name
+
+        last_sync_mtime = b.get_system_mtime(actual_name)
 
 
 
