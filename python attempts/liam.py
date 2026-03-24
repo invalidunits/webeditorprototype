@@ -6,30 +6,7 @@ import sys
 from xmlrpc.client import FastParser
 
 
-def get_key():
-    if os.name == 'nt':
-        import msvcrt
-        char = msvcrt.getch()
 
-        # Check if it's a special key prefix (\x00 or \xe0)
-        if char in (b'\x00', b'\xe0'):
-            # Read the second byte to clear the buffer
-            second_char = msvcrt.getch()
-            # Return a custom string so your editor knows it's an arrow
-            special_keys = {b'H': "UP", b'P': "DOWN", b'K': "LEFT", b'M': "RIGHT"}
-            return special_keys.get(second_char, "SPECIAL")
-
-        return char.decode('cp437', errors='ignore')
-    else:
-        import tty, termios
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        try:
-            tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return ch
 
 
 class functions:
@@ -106,66 +83,6 @@ class functions:
             os.remove(f"{self.cd}/{name}.md")
 
 
-    def editor(self, file):
-        print(f"-- editing {file} press '=' to exit --")
-
-        fileinfo = self.read_file(file)
-        text = "".join(fileinfo[3])
-
-        cursor = len(text)
-        beforeCursor = text[:cursor]
-        afterCursor = text[cursor:]
-        key = ""
-        print(f"\r{beforeCursor}{key}|{afterCursor}\n\n\n\n", end="", flush=True)
-        while key != '=':
-            key = get_key()
-            os.system('cls' if os.name == 'nt' else 'clear')
-            print(f"-- editing {file} press '=' to exit --")
-            if key == 'LEFT':
-                cursor -= 1
-                key = ""
-            if key == 'RIGHT':
-                cursor += 1
-                if cursor > len(text):
-                    cursor = len(text)
-                key=""
-            if key == '\r':
-                key = "\n"
-            if key in ["\b", "\x08", "\x7f"]:  # Backspace detection
-                if cursor > 0:
-                    text = beforeCursor[:-1] + afterCursor
-                    cursor-=1
-                    key = ""
-            if key == 'UP':
-                prev_newline = text.rfind('\n', 0, cursor -1)
-                if prev_newline != -1:
-                    cursor = prev_newline + 1
-                else:
-                    cursor = 0
-                key = ""
-
-            if key == 'DOWN':
-                next_newline = text.find('\n', cursor + 1)
-                if next_newline != -1:
-                    cursor = next_newline
-                else:
-                    cursor = len(text)
-                key = ""
-            beforeCursor = text[:cursor]
-            afterCursor = text[cursor:]
-            self.write_file(file,text)
-
-
-            # Append the key to your text and display it
-
-            # \r moves cursor to start of line, allowing a 'typewriter' effect
-
-            print(f"\r{beforeCursor}{key}|{afterCursor}\n\n\n\n", end="", flush=True)
-            text = beforeCursor + key + afterCursor
-            cursor += len(key)
-
-
-        print("\n--- Exiting Editor ---")
 
 
     def select_file(self,name):
