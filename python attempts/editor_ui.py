@@ -1,8 +1,8 @@
 # editor_ui.py
-from nicegui.functions.navigate import navigate
 
 import file_manager as b
 from nicegui import ui
+import re
 
 
 # Landing Screen
@@ -45,6 +45,7 @@ def landing_page():
 def render_editor(filename: str):
     # 1. STATE
     doc_state = b.read_file(filename)
+    doc_state['data'][1] = b.get_system_mtime(filename)
 
 
     # 2. LOGIC
@@ -55,16 +56,27 @@ def render_editor(filename: str):
         ui.navigate.to('/')
 
     def save():
-        # You will hook this up to your .md saving logic later!
-        print(f"--- SAVING {doc_state['title']}---")
-        b.save_file(doc_state['oldTitle'],doc_state["title"], doc_state['content'])
-        ui.navigate.history.replace(f'/editor/{doc_state['title']}')
+        doc_state["title"] = re.sub(r'[<>:"/\\|?*]', '', doc_state["title"])
+        actual_name = b.save_file(doc_state)
+        if actual_name != doc_state["oldTitle"]:
+            ui.navigate.history.replace(f'/editor/{actual_name}')
+        doc_state["oldTitle"] = actual_name
+        doc_state["title"] = actual_name
 
+
+
+    autosave_timer = ui.timer(2.0, lambda: save(), once=True)
+    autosave_timer.deactivate()
+
+    def reset_autosave():
+        """Restarts the 2-second countdown."""
+        autosave_timer.activate()
 
 
     # 3. LAYOUT
 
     ui.query('.nicegui-content').classes('p-0')
+    ui.add_css('.q-editor__toolbar { display: none !important; }')
 
     # header
     with ui.header().classes('bg-white border-b border-gray-200 py-2 px-4 items-center flex-row gap-6'):
@@ -74,18 +86,30 @@ def render_editor(filename: str):
             .classes('w-10 h-10 bg-[#F5F5DC]') \
             .props('square unelevated')
         #title field
-        ui.input() \
+        title_box = ui.input() \
             .bind_value(doc_state, 'title') \
             .props('dense input-class="text-2xl font-bold text-gray-800"') \
             .classes('w-64')
+
+        title_box.on('update:model-value', reset_autosave)
+
         #save and delete buttons
         with ui.row().classes('gap-1'):
             ui.button('Save', on_click=save, color='blue').props('flat size=sm')
             ui.button('Delete', on_click=delete, color='red').props('flat size=sm')
 
+        title_box.on('keydown.ctrl.s.capture.prevent.stop', lambda e: save())
+        title_box.on('keydown.meta.s.capture.prevent.stop', lambda e: save())
+
     # body
     with ui.column().classes('w-full min-h-screen items-center bg-gray-100 py-8'):
-        text_box = ui.textarea('') \
-            .bind_value(doc_state, 'content') \
-            .props('borderless autocomplete=nope autocorrect=off spellcheck=false autogrow') \
-            .classes('w-full max-w-4xl bg-white text-lg px-10 py-1 min-h-[100vh] shadow-md')
+        text_editor = ui.editor(
+            value=doc_state['content'],
+            on_change=lambda e: doc_state.update({'content': e.value})
+        ) \
+            .props('borderless autogrow') \
+            .classes('w-full max-w-4xl bg-white text-lg px-10 py-5 min-h-[100vh] shadow-md')
+
+        text_editor.on('update:model-value', reset_autosave)
+        text_editor.on('keydown.ctrl.s.capture.prevent.stop', lambda e: save())
+        text_editor.on('keydown.meta.s.capture.prevent.stop', lambda e: save())
