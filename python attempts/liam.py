@@ -59,8 +59,10 @@ class functions:
         except IOError as e:
             print(f"An error occurred: {e}")
 
-    def read_file(self,name):
-        fileinfo = []
+    def read_file(name):
+        fileinfo = {
+
+        }
         with open(f"{self.cd}/{name}.md", 'r') as file:
             #stores creation date
             fileinfo.append(file.readline())
